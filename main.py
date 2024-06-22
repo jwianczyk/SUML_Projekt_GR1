@@ -1,36 +1,67 @@
-import numpy as np
 import torch
-from models.scoring_models import ReadingScoreModel, WritingScoreModel, MathScoreModel
-import models.scoring_models
+import pandas as pd
+import numpy as np
 from fastapi import FastAPI
+from pydantic import BaseModel
+from models.scoring_models import ReadingScoreModel, WritingScoreModel, MathScoreModel
+
+WRITING_MODEL_STATE_PATH = 'models/writing_score_model_state.pt'
+READING_MODEL_STATE_PATH = 'models/reading_score_model_state.pt'
+MATH_MODEL_STATE_PATH = 'models/math_score_model_state.pt'
+
+
+class PredictionData(BaseModel):
+    Gender: float
+    EthnicGroup: float
+    ParentEduc: float
+    LunchType: float
+    TestPrep: float
+    ParentMaritalStatus: float
+    PracticeSport: float
+    IsFirstChild: float
+    NrSiblings: float
+    TransportMeans: float
+    WklyStudyHours: float
+
+
+class GenericInput(BaseModel):
+    prediction: str
+    data: PredictionData
+
 
 app = FastAPI()
 
 writing_model: WritingScoreModel = WritingScoreModel(11, 1)
+writing_model.load_state_dict(torch.load(WRITING_MODEL_STATE_PATH))
+
 reading_model: ReadingScoreModel = ReadingScoreModel(11, 1)
+reading_model.load_state_dict(torch.load(READING_MODEL_STATE_PATH))
+
 math_model: MathScoreModel = MathScoreModel(11, 1)
+math_model.load_state_dict(torch.load(MATH_MODEL_STATE_PATH))
 
-if __name__ == '__main__':
-    writing_model = torch.load('models/writing_score_model.pt')
-    reading_model = torch.load('models/reading_score_model.pt')
-    math_model = torch.load('models/math_score_model.pt')
+MODEL_CLASS_BY_PREDICTION_TYPE = {
+    'writing': writing_model,
+    'reading': reading_model,
+    'math': math_model
+}
 
 
-model_input = torch.tensor([1., 2., 5., 0., 1., 2., 0., 1., 1., 1., 0.], dtype=torch.float32)
-writing_model.eval()
-reading_model.eval()
-math_model.eval()
-
-writing_output = round(float(writing_model(model_input)[0]), 1)
-reading_output = round(float(reading_model(model_input)[0]), 1)
-math_output = round(float(math_model(model_input)[0]), 1)
-
-# print(f'predicted writing score: {writing_output}%')
-# print(f'predicted reading score: {reading_output}%')
-# print(f'predicted math score: {math_output}%')
+def convert_prediction_data_to_tensor(prediction_data: PredictionData):
+    return torch.tensor(data=[prediction_data.Gender, prediction_data.EthnicGroup, prediction_data.ParentEduc,
+                              prediction_data.LunchType, prediction_data.TestPrep, prediction_data.ParentMaritalStatus,
+                              prediction_data.PracticeSport, prediction_data.IsFirstChild, prediction_data.NrSiblings,
+                              prediction_data.TransportMeans, prediction_data.WklyStudyHours],
+                        dtype=torch.float32)
 
 
 @app.get('/')
 async def root():
-    return writing_output, reading_output, math_output
+    return {'Hello': 'World'}
 
+
+@app.post('/predict')
+async def predict(prediction_input: GenericInput):
+    tensor_input = convert_prediction_data_to_tensor(prediction_input.data)
+    output = round(float(MODEL_CLASS_BY_PREDICTION_TYPE[prediction_input.prediction](tensor_input)[0]), 1)
+    return {'predictions': output}
