@@ -57,7 +57,7 @@ def convert_prediction_data_to_tensor(prediction_data: PredictionData):
 
 @app.get('/')
 async def root():
-    return {'Hello': 'World'}
+    return 'SUML Project - Gr.1'
 
 
 @app.post('/predict')
