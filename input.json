@@ -1,0 +1,16 @@
+{
+  "prediction": "math",
+  "data": {
+    "Gender": 1.0,
+    "EthnicGroup": 2.0,
+    "ParentEduc": 3.0,
+    "LunchType": 0.0,
+    "TestPrep": 1.0,
+    "ParentMaritalStatus": 2.0,
+    "PracticeSport":  0.0,
+    "IsFirstChild": 1.0,
+    "NrSiblings": 1.0,
+    "TransportMeans": 1.0,
+    "WklyStudyHours": 0.0
+  }
+}
