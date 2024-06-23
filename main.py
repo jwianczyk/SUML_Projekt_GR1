@@ -64,4 +64,4 @@ async def root():
 async def predict(prediction_input: GenericInput):
     tensor_input = convert_prediction_data_to_tensor(prediction_input.data)
     output = round(float(MODEL_CLASS_BY_PREDICTION_TYPE[prediction_input.prediction](tensor_input)[0]), 1)
-    return {'predictions': output}
+    return {'prediction': output}
