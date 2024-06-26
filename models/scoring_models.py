@@ -2,7 +2,7 @@ import torch.nn as nn
 from pydantic import BaseModel
 
 
-class WritingScoreModel(nn.Module, BaseModel):
+class WritingScoreModel(nn.Module):
     def __init__(self, input_size, output_size):
         super(WritingScoreModel, self).__init__()
         self.linear1 = nn.Linear(input_size, 8)

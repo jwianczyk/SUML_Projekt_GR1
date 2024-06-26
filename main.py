@@ -1,6 +1,4 @@
 import torch
-import pandas as pd
-import numpy as np
 from fastapi import FastAPI
 from pydantic import BaseModel
 from models.scoring_models import ReadingScoreModel, WritingScoreModel, MathScoreModel
@@ -63,5 +61,9 @@ async def root():
 @app.post('/predict')
 async def predict(prediction_input: GenericInput):
     tensor_input = convert_prediction_data_to_tensor(prediction_input.data)
-    output = round(float(MODEL_CLASS_BY_PREDICTION_TYPE[prediction_input.prediction](tensor_input)[0]), 1)
-    return {'prediction': output}
+    output = (
+        f'writing score: {round(float(writing_model(tensor_input)[0]), 1)}%',
+        f'reading score: {round(float(reading_model(tensor_input)[0]), 1)}%',
+        f'math score: {round(float(math_model(tensor_input)[0]), 1)}%'
+    )
+    return output
